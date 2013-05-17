@@ -1,0 +1,27 @@
+import os, shutil, sqlite3
+from datetime import datetime
+
+if os.path.exists('data.db'):
+	os.rename('data.db', str(datetime.now()) + '.db.bak')
+
+conn = sqlite3.connect('data.db')
+c = conn.cursor()
+query = ["""CREATE TABLE language (id INTEGER PRIMARY KEY ASC AUTOINCREMENT, name TEXT NOT NULL UNIQUE)""",
+"""CREATE TABLE game (id INTEGER PRIMARY KEY ASC AUTOINCREMENT, name TEXT NOT NULL, id_language REFERENCES language (id) ON UPDATE CASCADE ON DELETE CASCADE)""",
+"""CREATE TABLE visualizer (id INTEGER PRIMARY KEY ASC AUTOINCREMENT, id_game REFERENCES game (id) ON UPDATE CASCADE ON DELETE CASCADE)""",
+"""CREATE TABLE pattern (id INTEGER PRIMARY KEY ASC AUTOINCREMENT, id_game REFERENCES game (id) ON UPDATE CASCADE ON DELETE CASCADE, id_language REFERENCES language (id) ON UPDATE CASCADE ON DELETE CASCADE)""",
+"""CREATE TABLE player (id INTEGER PRIMARY KEY ASC AUTOINCREMENT, name TEXT NOT NULL, login TEXT NOT NULL UNIQUE, password NOT NULL, tag TEXT)""",
+"""CREATE TABLE solution (id INTEGER PRIMARY KEY ASC AUTOINCREMENT, id_game REFERENCES game (id) ON UPDATE CASCADE ON DELETE CASCADE, id_language REFERENCES language (id) ON UPDATE CASCADE ON DELETE CASCADE, id_player REFERENCES player (id) ON UPDATE CASCADE ON DELETE CASCADE)""",
+"""CREATE TABLE schema (id INTEGER PRIMARY KEY ASC AUTOINCREMENT, name TEXT NOT NULL UNIQUE)""",
+"""CREATE TABLE tournament (id INTEGER PRIMARY KEY ASC AUTOINCREMENT, name TEXT NOT NULL UNIQUE, id_game REFERENCES game (id) ON UPDATE CASCADE ON DELETE CASCADE, id_schema REFERENCES schema (id) ON UPDATE CASCADE ON DELETE CASCADE, date1 INTEGER NOT NULL, date2 INTEGER NOT NULL)""",
+"""CREATE TABLE log (id INTEGER PRIMARY KEY ASC AUTOINCREMENT, id_tournament REFERENCES tournament (id) ON UPDATE CASCADE ON DELETE CASCADE)""",
+"""CREATE TABLE participant (id INTEGER PRIMARY KEY ASC AUTOINCREMENT, id_log REFERENCES log (id) ON UPDATE CASCADE ON DELETE CASCADE, id_solution REFERENCES solution (id) ON UPDATE CASCADE ON DELETE CASCADE, position INTEGER NOT NULL)""",
+"""CREATE TABLE who_played (id INTEGER PRIMARY KEY ASC AUTOINCREMENT, id_tournament REFERENCES tournament (id) ON UPDATE CASCADE ON DELETE CASCADE, id_solution REFERENCES solution (id) ON UPDATE CASCADE ON DELETE CASCADE)"""
+]
+languages = ['Delphi 7', 'MSVS 2008', 'Java 1.7']
+for q in query:
+	c.execute(q)
+for l in languages:
+	c.execute("""INSERT INTO language (name) VALUES (?)""", (l,))
+conn.commit()
+c.close()
